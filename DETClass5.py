@@ -11,7 +11,7 @@ import sys
 import re           #regular expression lib for string searches!
 
 #set up your GCP credentials - replace the " " in the following line with your .json file and path
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="../____.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="../DET2019viz.json"
 
 # this line connects to Google Cloud Vision! 
 client = vision.ImageAnnotatorClient()
@@ -59,9 +59,10 @@ def ocr_handwriting(image):
     #if it was, the text and search strings are sent to motor_turn()
 
     if word_text:
+        print('ocr_handwriting(): {}'.format(word_text))
         motor_turn(word_text,flag_up_string,flag_down_string)
     else:
-        print('No Handwriting Text Detected!')
+        print('ocr_handwriting(): No Handwriting Text Detected!')
 
 def image_labeling(image):
     #this function sends your image to google cloud using the
@@ -92,10 +93,10 @@ def image_labeling(image):
     #if labels are identified, send the sound files, search strings, and label
     #text to speaker_out()
     if label_text:
-        print(label_text)
+        print('image_labeling(): {}'.format(label_text))
         speaker_out(sound1, sound2, label_text, string1, string2)
     else:
-        print('No Label Descriptions')   
+        print('image_labeling(): No Label Descriptions')   
        
 def web_search(image):
     #this function sends your image to google cloud using the
@@ -107,7 +108,8 @@ def web_search(image):
     response = client.web_detection(image=image)
     web_guess = response.web_detection
     
-    print(web_guess.best_guess_labels)
+    for label in web_guess.best_guess_labels:
+        print('Best Web Guess Label: {}'.format(label.label))
     
 def face_distinction(image):
     #this function sends your image to google cloud using the
@@ -126,11 +128,12 @@ def face_distinction(image):
     #functions, we'll play the sound directly from this function
     #if our conditions are met. 
     
-    if face_content and face_content[0].detection_confidence > 0.5:
+    if face_content and face_content[0].detection_confidence > 0.25:
+        print('face_distinction(): {}'.format(face_content[0].detection_confidence))
         pg.mixer.music.load(sound_file)
         pg.mixer.music.play()
     else:
-        print('No Face Detected at High Confidence!')
+        print('face_distinction(): No Face Detected at High Confidence!')
         
 def motor_turn(text,up_string,down_string):
     
@@ -145,9 +148,6 @@ def motor_turn(text,up_string,down_string):
         crickit.servo_1.angle = 0
     elif re.search(down_string, text, re.IGNORECASE):
         crickit.servo_1.angle = 180
-    else:
-        print("Motor search strings not detected!")
-        
 
 def speaker_out(sound1, sound2, text, string1, string2):
     
@@ -160,7 +160,7 @@ def speaker_out(sound1, sound2, text, string1, string2):
     #.wav files are needed, otherwise you risk getting some
     #underrun errors. 
     
-    print(text)
+#    print(text)
     
     if re.search(string1, text, re.IGNORECASE):
         pg.mixer.music.load(sound1) #pygame - load the sound file
@@ -168,8 +168,6 @@ def speaker_out(sound1, sound2, text, string1, string2):
     elif re.search(string2, text, re.IGNORECASE):
         pg.mixer.music.load(sound2)
         pg.mixer.music.play()
-    else:
-        print("Speaker search strings not detected!")
 
 def main():
     
